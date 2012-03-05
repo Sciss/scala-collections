@@ -1,24 +1,24 @@
-//package com.codecommit.collection
-//
-//object FingerTree {
-//  sealed trait FingerTree[+A] {
-//    val isEmpty: Boolean
-//
-//    def headLeft: A
-//    def tailLeft: FingerTree[A]
-//
-//    def headRight: A
-//    def tailRight: FingerTree[A]
-//
-//    def +:[B >: A](b: B): FingerTree[B]
-//    def +[B >: A](b: B): FingerTree[B]
-//
-//    def viewLeft: FTViewLeft[FingerTree, A]
-//    def viewRight: FTViewRight[FingerTree, A]
-//
-//    def iterator: Iterator[A]
-//  }
-//
+package com.codecommit.collection
+
+object FingerTree {
+  sealed trait FingerTree[+A] {
+    val isEmpty: Boolean
+
+    def headLeft: A
+    def tailLeft: FingerTree[A]
+
+    def headRight: A
+    def tailRight: FingerTree[A]
+
+    def +:[B >: A](b: B): FingerTree[B]
+    def +[B >: A](b: B): FingerTree[B]
+
+    def viewLeft: FTViewLeft[FingerTree, A]
+    def viewRight: FTViewRight[FingerTree, A]
+
+    def iterator: Iterator[A]
+  }
+
 //  case class Single[+A](a: A) extends FingerTree[A] {
 //    val headLeft = a
 //    val tailLeft = Empty
@@ -147,49 +147,49 @@
 //
 //    override def toString = "Node3(%s, %s, %s)".format(a1, a2, a3)
 //  }
-//
-//
-//  sealed trait FTViewLeft[+S[+_], +A] {
-//    def head: A
-//    def tail: S[A]
-//  }
-//
+
+
+  sealed trait FTViewLeft[+S[+_], +A] {
+    def head: A
+    def tail: S[A]
+  }
+
 //  case class FTConsLeft[+S[+_], +A](head: A, tail: S[A]) extends FTViewLeft[S, A]
 //
 //  case class FTNilLeft[+S[+_]]() extends FTViewLeft[S, Nothing] {
 //    def head = throw new NoSuchElementException("head on empty view")
 //    def tail = throw new NoSuchElementException("tail on empty view")
 //  }
-//
-//
-//  sealed trait FTViewRight[+S[+_], +A] {
-//    def tail: S[A]
-//    def head: A
-//  }
-//
+
+
+  sealed trait FTViewRight[+S[+_], +A] {
+    def tail: S[A]
+    def head: A
+  }
+
 //  case class FTConsRight[+S[+_], +A](tail: S[A], head: A) extends FTViewRight[S, A]
 //
 //  case class FTNilRight[+S[+_]]() extends FTViewRight[S, Nothing] {
 //    def tail = throw new NoSuchElementException("tail on empty view")
 //    def head = throw new NoSuchElementException("head on empty view")
 //  }
-//
-//
-//  sealed trait Digit[+A] {
-//    val headLeft: A
-//    def tailLeft: Digit[A]
-//
-//    val headRight: A
-//    def tailRight: Digit[A]
-//
-//    def ::[B >: A](b: B): Digit[B]
-//    def +[B >: A](b: B): Digit[B]
-//
-//    def toTree: FingerTree[A]
-//
-//    def iterator: Iterator[A]
-//  }
-//
+
+
+  sealed trait Digit[+A] {
+    val headLeft: A
+    def tailLeft: Digit[A]
+
+    val headRight: A
+    def tailRight: Digit[A]
+
+    def ::[B >: A](b: B): Digit[B]
+    def +[B >: A](b: B): Digit[B]
+
+    def toTree: FingerTree[A]
+
+    def iterator: Iterator[A]
+  }
+
 //  case class One[+A](a1: A) extends Digit[A] {
 //    val headLeft = a1
 //    def tailLeft = throw new NoSuchElementException("tail on digit: one")
@@ -256,4 +256,4 @@
 //
 //    def iterator = (a1 :: a2 :: a3 :: a4 :: Nil).iterator
 //  }
-//}
+}
