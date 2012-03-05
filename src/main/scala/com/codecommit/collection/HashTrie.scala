@@ -76,7 +76,7 @@ object HashTrie {
 // nodes
 
 private[collection] sealed trait Node[K, +V] {
-  val size: Int
+  def size: Int
 
   def apply(key: K, hash: Int): Option[V]
 

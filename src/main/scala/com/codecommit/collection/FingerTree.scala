@@ -1,8 +1,11 @@
 package com.codecommit.collection
 
+/**
+ * Slight updates for Scala 2.9.1 by Hanns Holger Rutz.
+ */
 object FingerTree {
   sealed trait FingerTree[+A] {
-    val isEmpty: Boolean
+    def isEmpty: Boolean
 
     def headLeft: A
     def tailLeft: FingerTree[A]
@@ -71,12 +74,12 @@ object FingerTree {
         case One(_) => {
           tree.viewLeft match {
             case FTConsLeft(a, newTree) => Deep(a.toDigit, newTree, suffix)
-//            case FTNilLeft() => suffix.toTree
-            case _ => sys.error( "TODO" )
+//            case FTNilLeft() => suffix.toTree   // this match crashes Scalac 2.9.1 -- thus use the wildcard instead
+            case _ => suffix.toTree
           }
         }
 
-        case prefix => Deep(prefix.tailLeft, tree, suffix)
+        case _prefix => Deep(_prefix.tailLeft, tree, suffix)
       }
 
       FTConsLeft(prefix.headLeft, deep(prefix, tree, suffix))
@@ -87,12 +90,12 @@ object FingerTree {
         case One(_) => {
           tree.viewRight match {
             case FTConsRight(newTree, a) => Deep(prefix, newTree, a.toDigit)
-//            case FTNilRight() => prefix.toTree
-            case _ => sys.error( "TODO" )
+//            case FTNilRight() => prefix.toTree   // this match crashes Scalac 2.9.1 -- thus use the wildcard instead
+            case _ => prefix.toTree
           }
         }
 
-        case suffix => Deep(prefix, tree, suffix.tailRight)
+        case _suffix => Deep(prefix, tree, _suffix.tailRight)
       }
 
       FTConsRight(deep(prefix, tree, suffix.tailRight), suffix.headRight)
@@ -178,10 +181,10 @@ object FingerTree {
 
 
   sealed trait Digit[+A] {
-    val headLeft: A
+    def headLeft: A
     def tailLeft: Digit[A]
 
-    val headRight: A
+    def headRight: A
     def tailRight: Digit[A]
 
     def ::[B >: A](b: B): Digit[B]

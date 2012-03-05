@@ -45,7 +45,7 @@ import VectorCases._
  * A straight port of Clojure's <code>PersistentVector</code> class (with some
  * additional optimizations which may eventually land in Clojure's mainline).
  * For the record, this implementation is about 30% faster than
- * {@link scala.collection.immutable.Vector} on reads and about 5% slower for
+ * `scala.collection.immutable.Vector` on reads and about 5% slower for
  * "writes".
  *
  * Slight updates for Scala 2.9.1 by Hanns Holger Rutz.
@@ -317,7 +317,7 @@ private[collection] object VectorCases {
   sealed trait Case {
     type Self <: Case
 
-    val shift: Int
+    def shift: Int
 
     def apply(i: Int): Array[AnyRef]
     def update(i: Int, obj: AnyRef): Self

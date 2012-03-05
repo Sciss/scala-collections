@@ -37,7 +37,7 @@ class BloomSetArray[+T] private (k: Int, contents: Array[Int]) {
     contents foreach { os.write(_) }
   }
 
-  private def add(contents: Array[Int])(e: Any) = {
+  private def add(contents: Array[Int])(e: Any) {
     for (i <- 0 until k) {
       contents(hash(e, i, contents.length)) = 1
     }
