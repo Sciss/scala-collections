@@ -25,8 +25,10 @@
 
 package de.sciss.collection.immutable
 
-trait Measure[ -T, +R ] {
-   def unit : R
-   def +:( v: T ) : R
-   def :+( v: T ) : R
+trait Measure[ -C, M ] {
+   def zero: M
+   def unit( c: C ) : M
+   def +:( c: C, m: M ) : M
+   def :+( m: M, c: C ) : M
+   def |+|( a: M, b: M ) : M
 }

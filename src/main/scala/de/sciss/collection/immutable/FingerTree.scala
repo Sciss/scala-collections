@@ -34,7 +34,7 @@ object FingerTree {
    sealed trait FingerTree[ +V, +A ] {
       def isEmpty: Boolean
 
-      def measure: V = sys.error( "TODO" )
+      def measure[ V1 >: V ]( implicit m: Measure[ A, V1 ]): V1
 
       def headLeft: A
       def tailLeft[ V1 >: V ]( implicit m: Measure[ A, V1 ]): FingerTree[ V1, A ]
@@ -52,6 +52,8 @@ object FingerTree {
    }
 
    final case class Single[ V, A ]( a: A ) extends FingerTree[ V, A ] {
+      def measure[ V1 >: V ]( implicit m: Measure[ A, V1 ]): V1 = m.unit( a )
+
       def headLeft = a
       def tailLeft[ V1 >: V ]( implicit m: Measure[ A, V1 ]) : FingerTree[ V, A ] = Empty
 
@@ -82,6 +84,14 @@ object FingerTree {
    extends FingerTree[ V, A ] {
 
       def isEmpty    = false
+
+      def measure[ V1 >: V ]( implicit m: Measure[ A, V1 ]): V1 = {
+         implicit def m1: Measure[ Node[ A ], V1 ] = sys.error( "TODO" )
+         val mprefix = prefix.measure[ V1 ]
+         val mtree   = tree.measure[ V1 ]
+         val msuffix = suffix.measure[ V1 ]
+         m.|+|( m.|+|( mprefix, mtree ), msuffix )
+      }
 
       val headLeft   = prefix.headLeft
       val headRight  = suffix.headRight
@@ -140,7 +150,7 @@ object FingerTree {
    case object Empty extends FingerTree[ Nothing, Nothing ] {
       val isEmpty = true
 
-//      def measure = sys.error( "Measure on an empty finger tree" )
+      def measure[ V1 ]( implicit m: Measure[ Nothing, V1 ]): V1 = m.zero
 
       def headLeft = throw new NoSuchElementException("headLeft on empty finger tree")
       def tailLeft[ V1 ]( implicit m: Measure[ Nothing, V1 ]) : FingerTree[ V1, Nothing ] = throw new NoSuchElementException("tailLeft on empty finger tree")
@@ -171,8 +181,8 @@ object FingerTree {
    }
 
    final case class Node2[ A ]( a1: A, a2: A ) extends Node[ A ] {
-      def toDigit : Digit[ A ] = Two(a1, a2)
-      def toList  : List[ A ]  = List(a1, a2)
+      def toDigit : Digit[ A ] = Two(  a1, a2 )
+      def toList  : List[ A ]  = List( a1, a2 )
 
       override def toString = "Node2(%s, %s)".format(a1, a2)
    }
@@ -213,6 +223,8 @@ object FingerTree {
    // ---- Digits ----
 
    sealed trait Digit[ +A ] {
+      def measure[ V ]( implicit m: Measure[ A, V ]): V
+
       def headLeft  : A
       def tailLeft  : Digit[ A ]
 
@@ -254,7 +266,7 @@ object FingerTree {
       def tailLeft  : Digit[ A ] = One( a2 )
 
       def headRight = a2
-      def tailRight : Digit[ A ] = One(a1)
+      def tailRight : Digit[ A ] = One( a1 )
 
       def +:[ B >: A ]( b: B ) : Digit[ B ] = Three( b, a1, a2 )
       def :+[ B >: A ]( b: B ) : Digit[ B ] = Three( a1, a2, b )
