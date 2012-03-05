@@ -1,3 +1,28 @@
+/*
+ * FingerTree.scala
+ * (FingerTree)
+ *
+ * Copyright (c) 2012 Hanns Holger Rutz. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ *
+ * For further information, please contact Hanns Holger Rutz at
+ * contact@sciss.de
+ */
+
 package de.sciss.collection.immutable
 
 /**
@@ -12,34 +37,34 @@ object FingerTree {
       def measure: V = sys.error( "TODO" )
 
       def headLeft: A
-      def tailLeft: FingerTree[ V, A ]
+      def tailLeft[ V1 >: V ]( implicit m: Measure[ A, V1 ]): FingerTree[ V1, A ]
 
       def headRight: A
-      def tailRight: FingerTree[ V, A ]
+      def tailRight[ V1 >: V ]( implicit m: Measure[ A, V1 ]): FingerTree[ V1, A ]
 
-      def +:[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ]
-      def :+[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ]
+      def +:[ V1 >: V, A1 >: A ]( a1: A1 )( implicit m: Measure[ A1, V1 ]) : FingerTree[ V1, A1 ]
+      def :+[ V1 >: V, A1 >: A ]( a1: A1 )( implicit m: Measure[ A1, V1 ]) : FingerTree[ V1, A1 ]
 
-      def viewLeft:  ViewLeft[ V, A ]
-      def viewRight: ViewRight[ V, A ]
+      def viewLeft[  V1 >: V ]( implicit m: Measure[ A, V1 ]): ViewLeft[ V1, A ]
+      def viewRight[ V1 >: V ]( implicit m: Measure[ A, V1 ]): ViewRight[ V1, A ]
 
       def iterator: Iterator[ A ]
    }
 
    final case class Single[ V, A ]( a: A ) extends FingerTree[ V, A ] {
       def headLeft = a
-      def tailLeft : FingerTree[ V, A ] = Empty
+      def tailLeft[ V1 >: V ]( implicit m: Measure[ A, V1 ]) : FingerTree[ V, A ] = Empty
 
       def headRight = a
-      def tailRight : FingerTree[ V, A ] = Empty
+      def tailRight[ V1 >: V ]( implicit m: Measure[ A, V1 ]) : FingerTree[ V, A ] = Empty
 
       def isEmpty = false
 
-      def +:[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ] = Deep( One( a1 ), Empty, One( a ))
-      def :+[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ] = Deep( One( a ), Empty, One( a1 ))
+      def +:[ V1 >: V, A1 >: A ]( a1: A1 )( implicit m: Measure[ A1, V1 ]) : FingerTree[ V1, A1 ] = Deep( One( a1 ), Empty, One( a ))
+      def :+[ V1 >: V, A1 >: A ]( a1: A1 )( implicit m: Measure[ A1, V1 ]) : FingerTree[ V1, A1 ] = Deep( One( a ), Empty, One( a1 ))
 
-      def viewLeft  : ViewLeft[  V, A ] = ViewConsLeft[  V, A ]( a, Empty )
-      def viewRight : ViewRight[ V, A ] = ViewConsRight[ V, A ]( Empty, a )
+      def viewLeft[  V1 >: V ]( implicit m: Measure[ A, V1 ]) : ViewLeft[  V, A ] = ViewConsLeft[  V, A ]( a, Empty )
+      def viewRight[ V1 >: V ]( implicit m: Measure[ A, V1 ]) : ViewRight[ V, A ] = ViewConsRight[ V, A ]( Empty, a )
 
       def iterator : Iterator[ A ] = new Iterator[ A ] {
          var hasNext = true
@@ -61,24 +86,30 @@ object FingerTree {
       val headLeft   = prefix.headLeft
       val headRight  = suffix.headRight
 
-      def tailLeft  : FingerTree[ V, A ] = viewLeft.tail
-      def tailRight : FingerTree[ V, A ] = viewRight.tail
+      def tailLeft[  V1 >: V ]( implicit m: Measure[ A, V1 ]) : FingerTree[ V1, A ] = viewLeft[ V1 ].tail
+      def tailRight[ V1 >: V ]( implicit m: Measure[ A, V1 ]) : FingerTree[ V1, A ] = viewRight[ V1 ].tail
 
-      def +:[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ] = prefix match {
-         case Four( d, e, f, g ) => Deep( Two( a1, d ), Node3( d, e, f ) +: tree, suffix )
+      def +:[ V1 >: V, A1 >: A ]( a1: A1 )( implicit m: Measure[ A1, V1 ]) : FingerTree[ V1, A1 ] = prefix match {
+//         case Four( d, e, f, g ) => Deep( Two( a1, d ), Node3( d, e, f ) +: tree, suffix )
+         case Four( d, e, f, g ) =>
+            implicit def m1: Measure[ Node[ A1 ], V1 ] = sys.error( "TODO" )
+            Deep( Two( a1, d ), tree.+:[ V1, Node[ A1 ]]( Node3( d, e, f )), suffix )
          case partial            => Deep( a1 +: partial, tree, suffix )
       }
 
-      def :+[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ] = suffix match {
-         case Four( g, f, e, d ) => Deep( prefix, tree :+ Node3( g, f, e ), Two( d, a1 ))
+      def :+[ V1 >: V, A1 >: A ]( a1: A1 )( implicit m: Measure[ A1, V1 ]) : FingerTree[ V1, A1 ] = suffix match {
+         case Four( g, f, e, d ) =>
+            implicit def m1: Measure[ Node[ A1 ], V1 ] = sys.error( "TODO" )
+            Deep( prefix, tree.:+[ V1, Node[ A1 ]]( Node3( g, f, e )), Two( d, a1 ))
          case partial            => Deep( prefix, tree, partial :+ a1 )
       }
 
-      def viewLeft : ViewLeft[ V, A ] = {
+      def viewLeft[ V1 >: V ]( implicit m: Measure[ A, V1 ]) : ViewLeft[ V1, A ] = {
+         implicit def m1: Measure[ Node[ A ], V1 ] = sys.error( "TODO" )
          def deep( prefix: Digit[ A ], tree: FingerTree[ V, Node[ A ]], suffix: Digit[ A ]) = prefix match {
-            case One( _ ) => tree.viewLeft match {
+            case One( _ ) => tree.viewLeft[ V1 ] match {
                case ViewConsLeft( a, newTree ) => Deep( a.toDigit, newTree, suffix )
-               case _                        => suffix.toTree[ V ]
+               case _                          => suffix.toTree[ V1 ]
             }
 
             case _prefix => Deep( _prefix.tailLeft, tree, suffix )
@@ -87,11 +118,12 @@ object FingerTree {
          ViewConsLeft( prefix.headLeft, deep( prefix, tree, suffix ))
       }
 
-      def viewRight : ViewRight[ V, A ] = {
+      def viewRight[ V1 >: V ]( implicit m: Measure[ A, V1 ]) : ViewRight[ V1, A ] = {
+         implicit def m1: Measure[ Node[ A ], V1 ] = sys.error( "TODO" )
          def deep( prefix: Digit[ A ], tree: FingerTree[ V, Node[ A ]], suffix: Digit[ A ]) = suffix match {
-            case One( _ ) => tree.viewRight match {
-               case ViewConsRight( newTree, a )   => Deep( prefix, newTree, a.toDigit )
-               case _                           => prefix.toTree[ V ]
+            case One( _ ) => tree.viewRight[ V1 ] match {
+               case ViewConsRight( newTree, a ) => Deep( prefix, newTree, a.toDigit )
+               case _                           => prefix.toTree[ V1 ]
             }
 
             case _suffix => Deep( prefix, tree, _suffix.tailRight )
@@ -111,16 +143,16 @@ object FingerTree {
 //      def measure = sys.error( "Measure on an empty finger tree" )
 
       def headLeft = throw new NoSuchElementException("headLeft on empty finger tree")
-      def tailLeft : FingerTree[ Nothing, Nothing ] = throw new NoSuchElementException("tailLeft on empty finger tree")
+      def tailLeft[ V1 ]( implicit m: Measure[ Nothing, V1 ]) : FingerTree[ V1, Nothing ] = throw new NoSuchElementException("tailLeft on empty finger tree")
 
       def headRight = throw new NoSuchElementException("headRight on empty finger tree")
-      def tailRight : FingerTree[ Nothing, Nothing ] = throw new NoSuchElementException("tailRight on empty finger tree")
+      def tailRight[ V1 ]( implicit m: Measure[ Nothing, V1 ]) : FingerTree[ V1, Nothing ] = throw new NoSuchElementException("tailRight on empty finger tree")
 
-      def +:[ V1, A1 ]( a1: A1 ) : FingerTree[ V1, A1 ] = Single( a1 )
-      def :+[ V1, A1 ]( a1: A1 ) : FingerTree[ V1, A1 ] = Single( a1 )
+      def +:[ V1, A1 ]( a1: A1 )( implicit m: Measure[ A1, V1 ]) : FingerTree[ V1, A1 ] = Single( a1 )
+      def :+[ V1, A1 ]( a1: A1 )( implicit m: Measure[ A1, V1 ]) : FingerTree[ V1, A1 ] = Single( a1 )
 
-      def viewLeft  : ViewLeft[  Nothing, Nothing ] = ViewNilLeft[  Nothing ]()
-      def viewRight : ViewRight[ Nothing, Nothing ] = ViewNilRight[ Nothing ]()
+      def viewLeft[ V1 ](  implicit m: Measure[ Nothing, V1 ])  : ViewLeft[  V1, Nothing ] = ViewNilLeft[  Nothing ]()
+      def viewRight[ V1 ]( implicit m: Measure[ Nothing, V1 ]) : ViewRight[ V1, Nothing ] = ViewNilRight[ Nothing ]()
 
       def iterator : Iterator[ Nothing ] = new Iterator[ Nothing ] {
          val hasNext = false
@@ -190,7 +222,7 @@ object FingerTree {
       def +:[ B >: A ]( b: B ) : Digit[ B ]
       def :+[ B >: A ]( b: B ) : Digit[ B ]
 
-      def toTree[ V ]: FingerTree[ V, A ]
+      def toTree[ V ]( implicit m: Measure[ A, V ]): FingerTree[ V, A ]
 
       def iterator: Iterator[ A ]
    }
@@ -205,7 +237,7 @@ object FingerTree {
       def +:[ B >: A ]( b: B ) : Digit[ B ] = Two( b, a1 )
       def :+[ B >: A ]( b: B ) : Digit[ B ] = Two( a1, b )
 
-      def toTree[ V ] : FingerTree[ V, A ] = Single( a1 )
+      def toTree[ V ]( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = Single( a1 )
 
       def iterator : Iterator[ A ] = new Iterator[ A ] {
          var hasNext = true
@@ -227,7 +259,7 @@ object FingerTree {
       def +:[ B >: A ]( b: B ) : Digit[ B ] = Three( b, a1, a2 )
       def :+[ B >: A ]( b: B ) : Digit[ B ] = Three( a1, a2, b )
 
-      def toTree[ V ] : FingerTree[ V, A ] = a1 +: Single( a2 )
+      def toTree[ V ]( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = a1 +: Single( a2 )
 
       def iterator : Iterator[ A ] = (a1 :: a2 :: Nil).iterator
    }
@@ -242,7 +274,7 @@ object FingerTree {
       def +:[ B >: A ]( b: B ) : Digit[ B ] = Four( b, a1, a2, a3 )
       def :+[ B >: A ]( b: B ) : Digit[ B ] = Four( a1, a2, a3, b )
 
-      def toTree[ V ] : FingerTree[ V, A ] = a1 +: a2 +: Single(a3)
+      def toTree[ V ]( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = a1 +: a2 +: Single(a3)
 
       def iterator : Iterator[ A ] = (a1 :: a2 :: a3 :: Nil).iterator
    }
@@ -257,7 +289,7 @@ object FingerTree {
       def +:[ B >: A ]( b: B ) = throw new UnsupportedOperationException( ":: on Four" )
       def :+[ B >: A ]( b: B ) = throw new UnsupportedOperationException( "+ on Four" )
 
-      def toTree[ V ] : FingerTree[ V, A ] = a1 +: a2 +: a3 +: Single( a4 )
+      def toTree[ V ]( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = a1 +: a2 +: a3 +: Single( a4 )
 
       def iterator : Iterator[ A ] = (a1 :: a2 :: a3 :: a4 :: Nil).iterator
    }
