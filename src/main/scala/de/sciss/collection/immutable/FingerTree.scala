@@ -17,8 +17,8 @@ object FingerTree {
       def headRight: A
       def tailRight: FingerTree[ V, A ]
 
-      def +:[ B >: A ]( b: B ) : FingerTree[ V, B ]
-      def :+[ B >: A ]( b: B ) : FingerTree[ V, B ]
+      def +:[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ]
+      def :+[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ]
 
       def viewLeft:  ViewLeft[ V, A ]
       def viewRight: ViewRight[ V, A ]
@@ -35,8 +35,8 @@ object FingerTree {
 
       def isEmpty = false
 
-      def +:[ B >: A ]( b: B ) : FingerTree[ V, B ] = Deep( One( b ), Empty, One( a ))
-      def :+[ B >: A ]( b: B ) : FingerTree[ V, B ] = Deep( One( a ), Empty, One( b ))
+      def +:[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ] = Deep( One( a1 ), Empty, One( a ))
+      def :+[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ] = Deep( One( a ), Empty, One( a1 ))
 
       def viewLeft  : ViewLeft[  V, A ] = ViewConsLeft[  V, A ]( a, Empty )
       def viewRight : ViewRight[ V, A ] = ViewConsRight[ V, A ]( Empty, a )
@@ -64,14 +64,14 @@ object FingerTree {
       def tailLeft  : FingerTree[ V, A ] = viewLeft.tail
       def tailRight : FingerTree[ V, A ] = viewRight.tail
 
-      def +:[ B >: A ]( b: B ) : FingerTree[ V, B ] = prefix match {
-         case Four( d, e, f, g ) => Deep( Two( b, d ), Node3( d, e, f ) +: tree, suffix )
-         case partial            => Deep( b +: partial, tree, suffix )
+      def +:[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ] = prefix match {
+         case Four( d, e, f, g ) => Deep( Two( a1, d ), Node3( d, e, f ) +: tree, suffix )
+         case partial            => Deep( a1 +: partial, tree, suffix )
       }
 
-      def :+[ B >: A ]( b: B ) : FingerTree[ V, B ] = suffix match {
-         case Four( g, f, e, d ) => Deep( prefix, tree :+ Node3( g, f, e ), Two( d, b ))
-         case partial            => Deep( prefix, tree, partial :+ b )
+      def :+[ V1 >: V, A1 >: A ]( a1: A1 ) : FingerTree[ V1, A1 ] = suffix match {
+         case Four( g, f, e, d ) => Deep( prefix, tree :+ Node3( g, f, e ), Two( d, a1 ))
+         case partial            => Deep( prefix, tree, partial :+ a1 )
       }
 
       def viewLeft : ViewLeft[ V, A ] = {
@@ -116,8 +116,8 @@ object FingerTree {
       def headRight = throw new NoSuchElementException("headRight on empty finger tree")
       def tailRight : FingerTree[ Nothing, Nothing ] = throw new NoSuchElementException("tailRight on empty finger tree")
 
-      def +:[ B ]( b: B ) : FingerTree[ Nothing, B ] = Single( b )
-      def :+[ B ]( b: B ) : FingerTree[ Nothing, B ] = Single( b )
+      def +:[ V1, A1 ]( a1: A1 ) : FingerTree[ V1, A1 ] = Single( a1 )
+      def :+[ V1, A1 ]( a1: A1 ) : FingerTree[ V1, A1 ] = Single( a1 )
 
       def viewLeft  : ViewLeft[  Nothing, Nothing ] = ViewNilLeft[  Nothing ]()
       def viewRight : ViewRight[ Nothing, Nothing ] = ViewNilRight[ Nothing ]()
