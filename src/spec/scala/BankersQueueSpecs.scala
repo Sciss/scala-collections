@@ -5,7 +5,7 @@ import org.scalacheck._
 
 object BankersQueueSpecs extends Specification with ScalaCheck {
   import Prop._
-  
+
   "BankersQueue" should {
     "adhear to fifo" in {
       val prop = forAll { xs: List[Int] =>
@@ -17,10 +17,10 @@ object BankersQueueSpecs extends Specification with ScalaCheck {
         }
         true
       }
-      
+
       prop must pass
     }
-    
+
     "define apply from head" in {
       val prop = forAll { (i: Int, xs: List[Int]) =>
         !xs.isEmpty ==> {
@@ -29,10 +29,10 @@ object BankersQueueSpecs extends Specification with ScalaCheck {
           q(idx) mustEqual xs(idx)
         }
       }
-      
+
       prop must pass
     }
   }
-  
+
   def abs(i: Int) = Math.abs(i)          // workaround for scalac bug
 }

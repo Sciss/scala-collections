@@ -1,2 +1,5 @@
 reports/
 target/
+lib_managed/
+.idea/
+.idea_modules/
