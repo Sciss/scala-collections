@@ -31,9 +31,9 @@ object FingerTree {
 
     val isEmpty = false
 
-    def +:[B >: A](b: B) = sys.error( "TODO" ) : FingerTree[A] // Deep(One(b), Empty, One(a))
+    def +:[B >: A](b: B) = Deep(One(b), Empty, One(a))
 
-    def +[B >: A](b: B) = sys.error( "TODO" ) : FingerTree[A] // Deep(One(a), Empty, One(b))
+    def +[B >: A](b: B) = Deep(One(a), Empty, One(b))
 
     def viewLeft = FTConsLeft[FingerTree, A](a, Empty)
     def viewRight = FTConsRight[FingerTree, A](Empty, a)

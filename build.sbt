@@ -15,3 +15,4 @@ libraryDependencies ++= Seq(
    "org.scalatest" %% "scalatest" % "1.6.1" % "test"
 )
 
+initialCommands in console := """import com.codecommit.collection._"""
