@@ -219,14 +219,14 @@ object FingerTree {
       def toList  : List[ A ]
    }
 
-   final private case class Node2[ A ]( a1: A, a2: A ) extends Node[ A ] {
-      def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
-         Two( m.|+|( m.unit( a1 ), m.unit( a2 )), a1, a2 )
-
-      def toList : List[ A ]  = List( a1, a2 )
-
-      override def toString = "Node2(%s, %s)".format(a1, a2)
-   }
+//   final private case class Node2[ A ]( a1: A, a2: A ) extends Node[ A ] {
+//      def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
+//         Two( m.|+|( m.unit( a1 ), m.unit( a2 )), a1, a2 )
+//
+//      def toList : List[ A ]  = List( a1, a2 )
+//
+//      override def toString = "Node2(%s, %s)".format(a1, a2)
+//   }
 
    final private case class Node3[ A ]( a1: A, a2: A, a3: A ) extends Node[ A ] {
       def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
