@@ -8,7 +8,7 @@ scalaVersion := "2.9.1"
 
 retrieveManaged := true
 
-scalacOptions ++= Seq( "-deprecation", "-unchecked" )
+scalacOptions ++= Seq( "-no-specialization", "-deprecation", "-unchecked" )
 
 // libraryDependencies ++= Seq(
 //    "org.specs2" %% "specs2" % "1.8.2" % "test",
