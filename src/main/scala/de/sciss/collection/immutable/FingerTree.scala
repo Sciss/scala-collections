@@ -31,6 +31,13 @@ package de.sciss.collection.immutable
 object FingerTree {
    def empty[ V, A ]( implicit m: Measure[ Nothing, V ]) : FingerTree[ V, A ] = new Empty[ V ]( m.zero )
 
+   implicit private def nodeMeasure[ V, A ]( implicit m: Measure[ A, V ]) : Measure[ Node[ A ], V ] =
+      new Measure[ Node[ A ], V ] {
+         def zero : V = m.zero
+         def |+|( a: V, b: V ) : V = m.|+|( a, b )
+         def unit( n: Node[ A ]) : V = n.measure[ V ]
+      }
+
    // ---- Trees ----
 
    sealed trait FingerTree[ V, +A ] {
@@ -44,8 +51,8 @@ object FingerTree {
       def headRight: A
       def tailRight( implicit m: Measure[ A, V ]): FingerTree[ V, A ]
 
-      def +:[ A1 >: A ]( a1: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ]
-      def :+[ A1 >: A ]( a1: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ]
+      def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ]
+      def :+[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ]
 
       def viewLeft( implicit m: Measure[ A, V ]): ViewLeft[ V, A ]
       def viewRight( implicit m: Measure[ A, V ]): ViewRight[ V, A ]
@@ -109,7 +116,7 @@ object FingerTree {
          val vNew = m.|+|( vb, measure )
          prefix match {
             case Four( _, d, e, f, g ) =>
-               implicit def m1: Measure[ Node[ A1 ], V ] = sys.error( "TODO" )
+//               implicit def m1: Measure[ Node[ A1 ], V ] = sys.error( "TODO" )
                val prefix  = Two( m.|+|( vb, m.unit( d )), b, d )
                val treeNew = tree.+:[ Node[ A1 ]]( Node3( d, e, f ))
                Deep( vNew, prefix, treeNew, suffix )
@@ -124,7 +131,7 @@ object FingerTree {
          val vNew = m.|+|( vb, measure )
          suffix match {
             case Four( _, g, f, e, d ) =>
-               implicit def m1: Measure[ Node[ A1 ], V ] = sys.error( "TODO" )
+//               implicit def m1: Measure[ Node[ A1 ], V ] = sys.error( "TODO" )
                val treeNew = tree.:+[ Node[ A1 ]]( Node3( g, f, e ))
                val suffix  = Two( m.|+|( m.unit( d ), vb ), d, b )
                Deep( vNew, prefix, treeNew, suffix )
@@ -134,7 +141,7 @@ object FingerTree {
       }
 
       def viewLeft( implicit m: Measure[ A, V ]) : ViewLeft[ V, A ] = {
-         implicit def m1: Measure[ Node[ A ], V ] = sys.error( "TODO" )
+//         implicit def m1: Measure[ Node[ A ], V ] = sys.error( "TODO" )
          def deep( prefix: Digit[ V, A ], tree: FingerTree[ V, Node[ A ]], suffix: Digit[ V, A ]) = prefix match {
             case One( _, _ ) => tree.viewLeft match {
                case ViewConsLeft( a, newTree ) =>
@@ -155,7 +162,7 @@ object FingerTree {
       }
 
       def viewRight( implicit m: Measure[ A, V ]) : ViewRight[ V, A ] = {
-         implicit def m1: Measure[ Node[ A ], V ] = sys.error( "TODO" )
+//         implicit def m1: Measure[ Node[ A ], V ] = sys.error( "TODO" )
          def deep( prefix: Digit[ V, A ], tree: FingerTree[ V, Node[ A ]], suffix: Digit[ V, A ]) = suffix match {
             case One( _, _ ) => tree.viewRight match {
                case ViewConsRight( newTree, a ) =>
@@ -206,12 +213,13 @@ object FingerTree {
 
    // ---- Nodes ----
 
-   sealed trait Node[ +A ] {
+   private sealed trait Node[ +A ] {
+      def measure[ V ] : V = sys.error( "TODO" )
       def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ]
       def toList  : List[ A ]
    }
 
-   final case class Node2[ A ]( a1: A, a2: A ) extends Node[ A ] {
+   final private case class Node2[ A ]( a1: A, a2: A ) extends Node[ A ] {
       def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
          Two( m.|+|( m.unit( a1 ), m.unit( a2 )), a1, a2 )
 
@@ -220,7 +228,7 @@ object FingerTree {
       override def toString = "Node2(%s, %s)".format(a1, a2)
    }
 
-   final case class Node3[ A ]( a1: A, a2: A, a3: A ) extends Node[ A ] {
+   final private case class Node3[ A ]( a1: A, a2: A, a3: A ) extends Node[ A ] {
       def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
          Three( m.|+|( m.|+|( m.unit( a1 ), m.unit( a2 )), m.unit( a3 )), a1, a2, a3 )
 

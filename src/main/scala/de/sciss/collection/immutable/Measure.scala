@@ -28,7 +28,7 @@ package de.sciss.collection.immutable
 trait Measure[ -C, M ] {
    def zero: M
    def unit( c: C ) : M
-   def +:( c: C, m: M ) : M
-   def :+( m: M, c: C ) : M
+//   def +:( c: C, m: M ) : M
+//   def :+( m: M, c: C ) : M
    def |+|( a: M, b: M ) : M
 }
