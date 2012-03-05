@@ -3,7 +3,7 @@ package de.sciss.fingertree
 import com.codecommit.collection.FingerQueue
 
 object TestCodeCommit extends App {
-   val N    = 100000
+   val N    = 50000 // 100000
    val SEED = 0L
    val WARM = 2
 
