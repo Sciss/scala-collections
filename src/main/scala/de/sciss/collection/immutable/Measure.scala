@@ -25,6 +25,13 @@
 
 package de.sciss.collection.immutable
 
+object Measure {
+   object Indexed extends Measure[ Any, Int ] {
+      val zero = 0
+      def unit( c: Any ) = 1
+      def |+|( a: Int, b: Int ) = a + b
+   }
+}
 trait Measure[ -C, M ] {
    def zero: M
    def unit( c: C ) : M

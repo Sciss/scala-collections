@@ -58,6 +58,7 @@ object FingerTree {
       def viewRight( implicit m: Measure[ A, V ]): ViewRight[ V, A ]
 
       def iterator: Iterator[ A ]
+      def toList : List[ A ]
    }
 
    final private case class Single[ V, A ]( measure: V, a: A ) extends FingerTree[ V, A ] {
@@ -97,6 +98,8 @@ object FingerTree {
          }
       }
 
+      def toList : List[ A ] = a :: Nil
+
       override def toString = "FingerTree(Single(%s))".format(a)
    }
 
@@ -116,9 +119,8 @@ object FingerTree {
          val vNew = m.|+|( vb, measure )
          prefix match {
             case Four( _, d, e, f, g ) =>
-//               implicit def m1: Measure[ Node[ A1 ], V ] = sys.error( "TODO" )
                val prefix     = Two( m.|+|( vb, m.unit( d )), b, d )
-               val vTreePefix : V = sys.error( "TODO" )
+               val vTreePefix = m.|+|( m.|+|( m.unit( e ), m.unit( f )), m.unit( g ))
                val treeNew    = tree.+:[ Digit[ V, A1 ]]( Three( vTreePefix, e, f, g ))
                Deep( vNew, prefix, treeNew, suffix )
 
@@ -132,10 +134,9 @@ object FingerTree {
          val vNew = m.|+|( vb, measure )
          suffix match {
             case Four( _, g, f, e, d ) =>
-//               implicit def m1: Measure[ Node[ A1 ], V ] = sys.error( "TODO" )
-               val todo : V = sys.error( "TODO" )
-               val treeNew = tree.:+[ Digit[ V, A1 ]]( Three( todo, g, f, e ))
-               val suffix  = Two( m.|+|( m.unit( d ), vb ), d, b )
+               val vTreeSuffix= m.|+|( m.|+|( m.unit( g ), m.unit( f )), m.unit( e ))
+               val treeNew    = tree.:+[ Digit[ V, A1 ]]( Three( vTreeSuffix, g, f, e ))
+               val suffix     = Two( m.|+|( m.unit( d ), vb ), d, b )
                Deep( vNew, prefix, treeNew, suffix )
             case partial =>
                Deep( vNew, prefix, tree, partial :+ b )
@@ -143,7 +144,6 @@ object FingerTree {
       }
 
       def viewLeft( implicit m: Measure[ A, V ]) : ViewLeft[ V, A ] = {
-//         implicit def m1: Measure[ Node[ A ], V ] = sys.error( "TODO" )
          def deep( prefix: Digit[ V, A ], tree: FingerTree[ V, Digit[ V, A ]], suffix: Digit[ V, A ]) = prefix match {
             case One( _, _ ) => tree.viewLeft match {
                case ViewConsLeft( a, newTree ) =>
@@ -164,7 +164,6 @@ object FingerTree {
       }
 
       def viewRight( implicit m: Measure[ A, V ]) : ViewRight[ V, A ] = {
-//         implicit def m1: Measure[ Node[ A ], V ] = sys.error( "TODO" )
          def deep( prefix: Digit[ V, A ], tree: FingerTree[ V, Digit[ V, A ]], suffix: Digit[ V, A ]) = suffix match {
             case One( _, _ ) => tree.viewRight match {
                case ViewConsRight( newTree, a ) =>
@@ -185,6 +184,8 @@ object FingerTree {
       }
 
       def iterator : Iterator[ A ] = prefix.iterator ++ (tree.iterator flatMap { _.toList.iterator }) ++ suffix.iterator
+
+      def toList : List[ A ] = iterator.toList
 
       override def toString = "FingerTree(%s, %s, %s)".format(prefix, tree, suffix)
    }
@@ -210,13 +211,14 @@ object FingerTree {
          def next = throw new NoSuchElementException
       }
 
+      def toList : List[ Nothing ] = Nil
+
       override def toString = "FingerTree(Empty)"
    }
 
    // ---- Nodes ----
 
 //   private sealed trait Node[ +A ] {
-//      def measure[ V ] : V = sys.error( "TODO" )
 //      def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ]
 //      def toList  : List[ A ]
 //   }
