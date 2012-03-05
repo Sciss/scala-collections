@@ -125,13 +125,13 @@ object FingerTree {
 //
 //    override def toString = "FingerTree(Empty)"
 //  }
-//
-//
-//  sealed trait Node[+A] {
-//    def toDigit: Digit[A]
-//    def toList: List[A]
-//  }
-//
+
+
+  sealed trait Node[+A] {
+    def toDigit: Digit[A]
+    def toList: List[A]
+  }
+
 //  case class Node2[+A](a1: A, a2: A) extends Node[A] {
 //    def toDigit = Two(a1, a2)
 //
@@ -154,12 +154,12 @@ object FingerTree {
     def tail: S[A]
   }
 
-//  case class FTConsLeft[+S[+_], +A](head: A, tail: S[A]) extends FTViewLeft[S, A]
-//
-//  case class FTNilLeft[+S[+_]]() extends FTViewLeft[S, Nothing] {
-//    def head = throw new NoSuchElementException("head on empty view")
-//    def tail = throw new NoSuchElementException("tail on empty view")
-//  }
+  case class FTConsLeft[+S[+_], +A](head: A, tail: S[A]) extends FTViewLeft[S, A]
+
+  case class FTNilLeft[+S[+_]]() extends FTViewLeft[S, Nothing] {
+    def head = throw new NoSuchElementException("head on empty view")
+    def tail = throw new NoSuchElementException("tail on empty view")
+  }
 
 
   sealed trait FTViewRight[+S[+_], +A] {
@@ -167,12 +167,12 @@ object FingerTree {
     def head: A
   }
 
-//  case class FTConsRight[+S[+_], +A](tail: S[A], head: A) extends FTViewRight[S, A]
-//
-//  case class FTNilRight[+S[+_]]() extends FTViewRight[S, Nothing] {
-//    def tail = throw new NoSuchElementException("tail on empty view")
-//    def head = throw new NoSuchElementException("head on empty view")
-//  }
+  case class FTConsRight[+S[+_], +A](tail: S[A], head: A) extends FTViewRight[S, A]
+
+  case class FTNilRight[+S[+_]]() extends FTViewRight[S, Nothing] {
+    def tail = throw new NoSuchElementException("tail on empty view")
+    def head = throw new NoSuchElementException("head on empty view")
+  }
 
 
   sealed trait Digit[+A] {
@@ -190,70 +190,70 @@ object FingerTree {
     def iterator: Iterator[A]
   }
 
-//  case class One[+A](a1: A) extends Digit[A] {
-//    val headLeft = a1
-//    def tailLeft = throw new NoSuchElementException("tail on digit: one")
-//
-//    val headRight = a1
-//    def tailRight = throw new NoSuchElementException("tail on digit: one")
-//
-//    def ::[B >: A](b: B) = Two(b, a1)
-//    def +[B >: A](b: B) = Two(a1, b)
-//
-//    def toTree = Single(a1)
-//
-//    def iterator = new Iterator[A] {
-//      var hasNext = true
-//
-//      def next = {
-//        hasNext = false
-//        a1
-//      }
-//    }
-//  }
-//
-//  case class Two[+A](a1: A, a2: A) extends Digit[A] {
-//    val headLeft = a1
-//    def tailLeft = One(a2)
-//
-//    val headRight = a2
-//    def tailRight = One(a1)
-//
-//    def ::[B >: A](b: B) = Three(b, a1, a2)
-//    def +[B >: A](b: B) = Three(a1, a2, b)
-//
-//    def toTree = a1 +: Single(a2)
-//
-//    def iterator = (a1 :: a2 :: Nil).iterator
-//  }
-//
-//  case class Three[+A](a1: A, a2: A, a3: A) extends Digit[A] {
-//    val headLeft = a1
-//    def tailLeft = Two(a2, a3)
-//
-//    val headRight = a3
-//    def tailRight = Two(a1, a2)
-//
-//    def ::[B >: A](b: B) = Four(b, a1, a2, a3)
-//    def +[B >: A](b: B) = Four(a1, a2, a3, b)
-//
-//    def toTree = a1 +: a2 +: Single(a3)
-//
-//    def iterator = (a1 :: a2 :: a3 :: Nil).iterator
-//  }
-//
-//  case class Four[+A](a1: A, a2: A, a3: A, a4: A) extends Digit[A] {
-//    val headLeft = a1
-//    def tailLeft = Three(a2, a3, a4)
-//
-//    val headRight = a4
-//    def tailRight = Three(a1, a2, a3)
-//
-//    def ::[B >: A](b: B) = throw new UnsupportedOperationException(":: on Four")
-//    def +[B >: A](b: B) = throw new UnsupportedOperationException("+ on Four")
-//
-//    def toTree = a1 +: a2 +: a3 +: Single(a4)
-//
-//    def iterator = (a1 :: a2 :: a3 :: a4 :: Nil).iterator
-//  }
+  case class One[+A](a1: A) extends Digit[A] {
+    val headLeft = a1
+    def tailLeft = throw new NoSuchElementException("tail on digit: one")
+
+    val headRight = a1
+    def tailRight = throw new NoSuchElementException("tail on digit: one")
+
+    def ::[B >: A](b: B) = Two(b, a1)
+    def +[B >: A](b: B) = Two(a1, b)
+
+    def toTree = sys.error( "TODO" ) // Single(a1)
+
+    def iterator = new Iterator[A] {
+      var hasNext = true
+
+      def next = {
+        hasNext = false
+        a1
+      }
+    }
+  }
+
+  case class Two[+A](a1: A, a2: A) extends Digit[A] {
+    val headLeft = a1
+    def tailLeft = One(a2)
+
+    val headRight = a2
+    def tailRight = One(a1)
+
+    def ::[B >: A](b: B) = Three(b, a1, a2)
+    def +[B >: A](b: B) = Three(a1, a2, b)
+
+    def toTree = sys.error( "TODO" ) // a1 +: Single(a2)
+
+    def iterator = (a1 :: a2 :: Nil).iterator
+  }
+
+  case class Three[+A](a1: A, a2: A, a3: A) extends Digit[A] {
+    val headLeft = a1
+    def tailLeft = Two(a2, a3)
+
+    val headRight = a3
+    def tailRight = Two(a1, a2)
+
+    def ::[B >: A](b: B) = Four(b, a1, a2, a3)
+    def +[B >: A](b: B) = Four(a1, a2, a3, b)
+
+    def toTree = sys.error( "TODO" ) // a1 +: a2 +: Single(a3)
+
+    def iterator = (a1 :: a2 :: a3 :: Nil).iterator
+  }
+
+  case class Four[+A](a1: A, a2: A, a3: A, a4: A) extends Digit[A] {
+    val headLeft = a1
+    def tailLeft = Three(a2, a3, a4)
+
+    val headRight = a4
+    def tailRight = Three(a1, a2, a3)
+
+    def ::[B >: A](b: B) = throw new UnsupportedOperationException(":: on Four")
+    def +[B >: A](b: B) = throw new UnsupportedOperationException("+ on Four")
+
+    def toTree = sys.error( "TODO" ) // a1 +: a2 +: a3 +: Single(a4)
+
+    def iterator = (a1 :: a2 :: a3 :: a4 :: Nil).iterator
+  }
 }
