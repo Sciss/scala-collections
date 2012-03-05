@@ -78,7 +78,7 @@ object FingerTree {
         case One(_) => {
           tree.viewLeft match {
             case FTConsLeft(a, newTree) => Deep(a.toDigit, newTree, suffix)
-//            case FTNilLeft() => suffix.toTree   // this match crashes Scalac 2.9.1 -- thus use the wildcard instead
+//            case ViewNilLeft() => suffix.toTree   // this match crashes Scalac 2.9.1 -- thus use the wildcard instead
             case _ => suffix.toTree
           }
         }
@@ -94,7 +94,7 @@ object FingerTree {
         case One(_) => {
           tree.viewRight match {
             case FTConsRight(newTree, a) => Deep(prefix, newTree, a.toDigit)
-//            case FTNilRight() => prefix.toTree   // this match crashes Scalac 2.9.1 -- thus use the wildcard instead
+//            case ViewNilRight() => prefix.toTree   // this match crashes Scalac 2.9.1 -- thus use the wildcard instead
             case _ => prefix.toTree
           }
         }

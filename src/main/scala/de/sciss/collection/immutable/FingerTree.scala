@@ -9,7 +9,7 @@ object FingerTree {
    sealed trait FingerTree[ +V, +A ] {
       def isEmpty: Boolean
 
-      def measure: V
+      def measure: V = sys.error( "TODO" )
 
       def headLeft: A
       def tailLeft: FingerTree[ V, A ]
@@ -20,8 +20,8 @@ object FingerTree {
       def +:[ B >: A ]( b: B ) : FingerTree[ V, B ]
       def :+[ B >: A ]( b: B ) : FingerTree[ V, B ]
 
-      def viewLeft:  FTViewLeft[ FingerTree, A ]
-      def viewRight: FTViewRight[ FingerTree, A ]
+      def viewLeft:  ViewLeft[ V, A ]
+      def viewRight: ViewRight[ V, A ]
 
       def iterator: Iterator[ A ]
    }
@@ -38,8 +38,8 @@ object FingerTree {
       def +:[ B >: A ]( b: B ) : FingerTree[ V, B ] = Deep( One( b ), Empty, One( a ))
       def :+[ B >: A ]( b: B ) : FingerTree[ V, B ] = Deep( One( a ), Empty, One( b ))
 
-      def viewLeft  : FTViewLeft[  FingerTree, A ] = FTConsLeft[  FingerTree, A ]( a, Empty )
-      def viewRight : FTViewRight[ FingerTree, A ] = FTConsRight[ FingerTree, A ]( Empty, a )
+      def viewLeft  : ViewLeft[  V, A ] = ViewConsLeft[  V, A ]( a, Empty )
+      def viewRight : ViewRight[ V, A ] = ViewConsRight[ V, A ]( Empty, a )
 
       def iterator : Iterator[ A ] = new Iterator[ A ] {
          var hasNext = true
@@ -74,30 +74,30 @@ object FingerTree {
          case partial            => Deep( prefix, tree, partial + b )
       }
 
-      def viewLeft : FTViewLeft[ FingerTree, A ] = {
+      def viewLeft : ViewLeft[ V, A ] = {
          def deep( prefix: Digit[ A ], tree: FingerTree[ V, Node[ A ]], suffix: Digit[ A ]) = prefix match {
             case One( _ ) => tree.viewLeft match {
-               case FTConsLeft( a, newTree ) => Deep( a.toDigit, newTree, suffix )
+               case ViewConsLeft( a, newTree ) => Deep( a.toDigit, newTree, suffix )
                case _                        => suffix.toTree[ V ]
             }
 
             case _prefix => Deep( _prefix.tailLeft, tree, suffix )
          }
 
-         FTConsLeft( prefix.headLeft, deep( prefix, tree, suffix ))
+         ViewConsLeft( prefix.headLeft, deep( prefix, tree, suffix ))
       }
 
-      def viewRight : FTViewLeft[ FingerTree, A ] = {
+      def viewRight : ViewRight[ V, A ] = {
          def deep( prefix: Digit[ A ], tree: FingerTree[ V, Node[ A ]], suffix: Digit[ A ]) = suffix match {
             case One( _ ) => tree.viewRight match {
-               case FTConsRight( newTree, a )   => Deep( prefix, newTree, a.toDigit )
+               case ViewConsRight( newTree, a )   => Deep( prefix, newTree, a.toDigit )
                case _                           => prefix.toTree[ V ]
             }
 
             case _suffix => Deep( prefix, tree, _suffix.tailRight )
          }
 
-         FTConsRight( deep( prefix, tree, suffix.tailRight ), suffix.headRight )
+         ViewConsRight( deep( prefix, tree, suffix.tailRight ), suffix.headRight )
       }
 
       def iterator : Iterator[ A ] = prefix.iterator ++ (tree.iterator flatMap { _.toList.iterator }) ++ suffix.iterator
@@ -108,7 +108,7 @@ object FingerTree {
    case object Empty extends FingerTree[ Nothing, Nothing ] {
       val isEmpty = true
 
-      def measure = sys.error( "Measure on an empty finger tree" )
+//      def measure = sys.error( "Measure on an empty finger tree" )
 
       def headLeft = throw new NoSuchElementException("headLeft on empty finger tree")
       def tailLeft : FingerTree[ Nothing, Nothing ] = throw new NoSuchElementException("tailLeft on empty finger tree")
@@ -119,10 +119,10 @@ object FingerTree {
       def +:[ B ]( b: B ) : FingerTree[ Nothing, B ] = Single( b )
       def :+[ B ]( b: B ) : FingerTree[ Nothing, B ] = Single( b )
 
-      def viewLeft  : FTViewLeft[ FingerTree, Nothing ] = FTNilLeft[  FingerTree ]()
-      def viewRight : FTViewLeft[ FingerTree, Nothing ] = FTNilRight[ FingerTree ]()
+      def viewLeft  : ViewLeft[  Nothing, Nothing ] = ViewNilLeft[  Nothing ]()
+      def viewRight : ViewRight[ Nothing, Nothing ] = ViewNilRight[ Nothing ]()
 
-      def iterator : Iterator[ Nothing ] = new Iterator[Nothing] {
+      def iterator : Iterator[ Nothing ] = new Iterator[ Nothing ] {
          val hasNext = false
 
          def next = throw new NoSuchElementException
@@ -154,28 +154,28 @@ object FingerTree {
 
    // ---- Views ----
 
-   sealed trait FTViewLeft[ +S[ +_ ], +A ] {
+   sealed trait ViewLeft[ +V, +A ] {
       def head : A
-      def tail : S[ A ]
+      def tail : FingerTree[ V, A ]
    }
 
-   final case class FTConsLeft[ S[ _ ], A ]( head: A, tail: S[ A ]) extends FTViewLeft[ S, A ]
+   final case class ViewConsLeft[ V, A ]( head: A, tail: FingerTree[ V, A ]) extends ViewLeft[ V, A ]
 
-   final case class FTNilLeft[ S[ _ ]]() extends FTViewLeft[ S, Nothing ] {
-      def head : Nothing      = throw new NoSuchElementException( "head on empty view" )
-      def tail : S[ Nothing ] = throw new NoSuchElementException( "tail on empty view" )
+   final case class ViewNilLeft[ V ]() extends ViewLeft[ V, Nothing ] {
+      def head : Nothing                  = throw new NoSuchElementException( "head on empty view" )
+      def tail : FingerTree[ V, Nothing ] = throw new NoSuchElementException( "tail on empty view" )
    }
 
-   sealed trait FTViewRight[ +S[ +_ ], +A ] {
-      def tail : S[ A ]
+   sealed trait ViewRight[ +V, +A ] {
+      def tail : FingerTree[ V, A ]
       def head : A
    }
 
-   final case class FTConsRight[ S[ _ ], A ]( tail: S[ A ], head: A ) extends FTViewRight[ S, A ]
+   final case class ViewConsRight[ V, A ]( tail: FingerTree[ V, A ], head: A ) extends ViewRight[ V, A ]
 
-   final case class FTNilRight[ S[ _ ]]() extends FTViewRight[ S, Nothing ] {
-      def tail : Nothing      = throw new NoSuchElementException( "tail on empty view" )
-      def head : S[ Nothing ] = throw new NoSuchElementException( "head on empty view" )
+   final case class ViewNilRight[ V ]() extends ViewRight[ V, Nothing ] {
+      def tail : FingerTree[ V, Nothing ] = throw new NoSuchElementException( "tail on empty view" )
+      def head : Nothing                  = throw new NoSuchElementException( "head on empty view" )
    }
 
    // ---- Digits ----
