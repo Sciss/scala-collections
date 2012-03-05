@@ -64,7 +64,8 @@ object FingerTree {
     def tailRight = viewRight.tail
 
     def +:[B >: A](b: B) = prefix match {
-      case Four(d, e, f, g) => Deep(Two(b, d), Node3(d, e, f) +: tree, suffix)
+//       case Four(d, e, f, g) => Deep(Two(b, d), Node3(d, e, f) +: tree, suffix)   // WRONG!
+      case Four(d, e, f, g) => Deep(Two(b, d), Node3(e, f, g) +: tree, suffix)
       case partial => Deep(b :: partial, tree, suffix)
     }
 

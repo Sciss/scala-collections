@@ -117,9 +117,9 @@ object FingerTree {
          prefix match {
             case Four( _, d, e, f, g ) =>
 //               implicit def m1: Measure[ Node[ A1 ], V ] = sys.error( "TODO" )
-               val prefix  = Two( m.|+|( vb, m.unit( d )), b, d )
-               val todo: V = sys.error( "TODO" )
-               val treeNew = tree.+:[ Digit[ V, A1 ]]( Three( todo, d, e, f ))
+               val prefix     = Two( m.|+|( vb, m.unit( d )), b, d )
+               val vTreePefix : V = sys.error( "TODO" )
+               val treeNew    = tree.+:[ Digit[ V, A1 ]]( Three( vTreePefix, e, f, g ))
                Deep( vNew, prefix, treeNew, suffix )
 
             case partial =>
