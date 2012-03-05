@@ -15,4 +15,4 @@ scalacOptions ++= Seq( "-no-specialization", "-deprecation", "-unchecked" )
 //    "org.scalatest" %% "scalatest" % "1.6.1" % "test"
 // )
 
-initialCommands in console := """import com.codecommit.collection._"""
+initialCommands in console := """import de.sciss.collection.immutable._"""

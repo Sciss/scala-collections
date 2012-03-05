@@ -66,12 +66,12 @@ object FingerTree {
 
       def +:[ B >: A ]( b: B ) : FingerTree[ V, B ] = prefix match {
          case Four( d, e, f, g ) => Deep( Two( b, d ), Node3( d, e, f ) +: tree, suffix )
-         case partial            => Deep( b :: partial, tree, suffix )
+         case partial            => Deep( b +: partial, tree, suffix )
       }
 
       def :+[ B >: A ]( b: B ) : FingerTree[ V, B ] = suffix match {
          case Four( g, f, e, d ) => Deep( prefix, tree :+ Node3( g, f, e ), Two( d, b ))
-         case partial            => Deep( prefix, tree, partial + b )
+         case partial            => Deep( prefix, tree, partial :+ b )
       }
 
       def viewLeft : ViewLeft[ V, A ] = {
@@ -187,8 +187,8 @@ object FingerTree {
       def headRight : A
       def tailRight : Digit[ A ]
 
-      def ::[ B >: A ]( b: B ) : Digit[ B ]
-      def +[  B >: A ]( b: B ) : Digit[ B ]
+      def +:[ B >: A ]( b: B ) : Digit[ B ]
+      def :+[ B >: A ]( b: B ) : Digit[ B ]
 
       def toTree[ V ]: FingerTree[ V, A ]
 
@@ -202,8 +202,8 @@ object FingerTree {
       def headRight = a1
       def tailRight : Digit[ A ] = throw new NoSuchElementException( "tail on digit: one" )
 
-      def ::[ B >: A ]( b: B ) : Digit[ B ] = Two( b, a1 )
-      def +[  B >: A ]( b: B ) : Digit[ B ] = Two( a1, b )
+      def +:[ B >: A ]( b: B ) : Digit[ B ] = Two( b, a1 )
+      def :+[ B >: A ]( b: B ) : Digit[ B ] = Two( a1, b )
 
       def toTree[ V ] : FingerTree[ V, A ] = Single( a1 )
 
@@ -224,8 +224,8 @@ object FingerTree {
       def headRight = a2
       def tailRight : Digit[ A ] = One(a1)
 
-      def ::[ B >: A ]( b: B ) : Digit[ B ] = Three( b, a1, a2 )
-      def +[  B >: A ]( b: B ) : Digit[ B ] = Three( a1, a2, b )
+      def +:[ B >: A ]( b: B ) : Digit[ B ] = Three( b, a1, a2 )
+      def :+[ B >: A ]( b: B ) : Digit[ B ] = Three( a1, a2, b )
 
       def toTree[ V ] : FingerTree[ V, A ] = a1 +: Single( a2 )
 
@@ -239,8 +239,8 @@ object FingerTree {
       val headRight = a3
       def tailRight : Digit[ A ] = Two( a1, a2 )
 
-      def ::[ B >: A ]( b: B ) : Digit[ B ] = Four( b, a1, a2, a3 )
-      def +[  B >: A ]( b: B ) : Digit[ B ] = Four( a1, a2, a3, b )
+      def +:[ B >: A ]( b: B ) : Digit[ B ] = Four( b, a1, a2, a3 )
+      def :+[ B >: A ]( b: B ) : Digit[ B ] = Four( a1, a2, a3, b )
 
       def toTree[ V ] : FingerTree[ V, A ] = a1 +: a2 +: Single(a3)
 
@@ -254,8 +254,8 @@ object FingerTree {
       def headRight = a4
       def tailRight : Digit[ A ] = Three( a1, a2, a3 )
 
-      def ::[ B >: A ]( b: B ) = throw new UnsupportedOperationException( ":: on Four" )
-      def +[  B >: A ]( b: B ) = throw new UnsupportedOperationException( "+ on Four" )
+      def +:[ B >: A ]( b: B ) = throw new UnsupportedOperationException( ":: on Four" )
+      def :+[ B >: A ]( b: B ) = throw new UnsupportedOperationException( "+ on Four" )
 
       def toTree[ V ] : FingerTree[ V, A ] = a1 +: a2 +: a3 +: Single( a4 )
 
