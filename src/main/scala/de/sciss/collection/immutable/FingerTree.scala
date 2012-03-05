@@ -2,21 +2,21 @@
  * FingerTree.scala
  * (FingerTree)
  *
- * Copyright (c) 2012 Hanns Holger Rutz. All rights reserved.
+ * Copyright (c) 2011-2012 Hanns Holger Rutz. All rights reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either
+ * version 2, june 1991 of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * You should have received a copy of the GNU General Public
+ * License (gpl.txt) along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *
  * For further information, please contact Hanns Holger Rutz at
@@ -29,7 +29,7 @@ package de.sciss.collection.immutable
  * Variant of a finger tree which adds a measure.
  */
 object FingerTree {
-   def empty[ V, A ]( implicit m: Measure[ Nothing, V ]) : FingerTree[ V, A ] = new Empty[ V ]( m.zero )
+   def empty[ V, A ]( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = new Empty[ V ]( m.zero )
 
    implicit private def nodeMeasure[ V, A ]( implicit m: Measure[ A, V ]) : Measure[ Digit[ V, A ], V ] =
       new Measure[ Digit[ V, A ], V ] {
@@ -40,33 +40,14 @@ object FingerTree {
 
    // ---- Trees ----
 
-   sealed trait FingerTree[ V, +A ] {
-      def isEmpty: Boolean
-
-      def measure : V
-
-      def headLeft: A
-      def tailLeft( implicit m: Measure[ A, V ]): FingerTree[ V, A ]
-
-      def headRight: A
-      def tailRight( implicit m: Measure[ A, V ]): FingerTree[ V, A ]
-
-      def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ]
-      def :+[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ]
-
-      def viewLeft( implicit m: Measure[ A, V ]): ViewLeft[ V, A ]
-      def viewRight( implicit m: Measure[ A, V ]): ViewRight[ V, A ]
-
-      def iterator: Iterator[ A ]
-      def toList : List[ A ]
-   }
-
    final private case class Single[ V, A ]( measure: V, a: A ) extends FingerTree[ V, A ] {
-      def headLeft = a
-      def tailLeft( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = empty[ V, A ]
+      def head = a
+      def headOption : Option[ A ] = Some( a )
+      def tail(  implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = empty[ V, A ]
 
-      def headRight = a
-      def tailRight( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = empty[ V, A ]
+      def last = a
+      def lastOption : Option[ A ] = Some( a )
+      def init( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = empty[ V, A ]
 
       def isEmpty = false
 
@@ -86,7 +67,7 @@ object FingerTree {
          Deep( m.|+|( vPrefix, vSuffix ), prefix, empty[ V, Digit[ V, A1 ]], suffix )
       }
 
-      def viewLeft( implicit m: Measure[ A, V ]) : ViewLeft[  V, A ] = ViewConsLeft[  V, A ]( a, empty[ V, A ])
+      def viewLeft(  implicit m: Measure[ A, V ]) : ViewLeft[  V, A ] = ViewConsLeft[  V, A ]( a, empty[ V, A ])
       def viewRight( implicit m: Measure[ A, V ]) : ViewRight[ V, A ] = ViewConsRight[ V, A ]( empty[ V, A ], a )
 
       def iterator : Iterator[ A ] = new Iterator[ A ] {
@@ -100,19 +81,22 @@ object FingerTree {
 
       def toList : List[ A ] = a :: Nil
 
-      override def toString = "FingerTree(Single(%s))".format(a)
+      override def toString = "(" + a + ")"
    }
 
-   final private case class Deep[ V, A ]( measure: V, prefix: Digit[ V, A ], tree: FingerTree[ V, Digit[ V, A ]], suffix: Digit[ V, A ])
+   final private case class Deep[ V, A ]( measure: V, prefix: Digit[ V, A ], tree: FingerTree[ V, Digit[ V, A ]],
+                                          suffix: Digit[ V, A ])
    extends FingerTree[ V, A ] {
 
       def isEmpty    = false
 
-      val headLeft   = prefix.headLeft
-      val headRight  = suffix.headRight
+      def head       = prefix.head
+      def headOption : Option[ A ] = Some( prefix.head )
+      def last       = suffix.last
+      def lastOption : Option[ A ] = Some( suffix.last )
 
-      def tailLeft( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = viewLeft.tail
-      def tailRight( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = viewRight.tail
+      def tail( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = viewLeft.tail
+      def init( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = viewRight.tail
 
       def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ] = {
          val vb   = m.unit( b )
@@ -147,57 +131,59 @@ object FingerTree {
          def deep( prefix: Digit[ V, A ], tree: FingerTree[ V, Digit[ V, A ]], suffix: Digit[ V, A ]) = prefix match {
             case One( _, _ ) => tree.viewLeft match {
                case ViewConsLeft( a, newTree ) =>
-//                  val prefixNew = a.toDigit[ V ]
-                  val vNew = m.|+|( m.|+|( a.measure /* prefixNew.measure */, newTree.measure ), suffix.measure )
-                  Deep( vNew, a /* prefixNew */, newTree, suffix )
+                  val vNew = m.|+|( m.|+|( a.measure, newTree.measure ), suffix.measure )
+                  Deep( vNew, a, newTree, suffix )
                case _ =>
                   suffix.toTree
             }
 
             case _prefix =>
-               val prefixNew = _prefix.tailLeft
+               val prefixNew = _prefix.tail
                val vNew = m.|+|( m.|+|( prefixNew.measure, tree.measure ), suffix.measure )
                Deep( vNew, prefixNew, tree, suffix )
          }
 
-         ViewConsLeft( prefix.headLeft, deep( prefix, tree, suffix ))
+         ViewConsLeft( prefix.head, deep( prefix, tree, suffix ))
       }
 
       def viewRight( implicit m: Measure[ A, V ]) : ViewRight[ V, A ] = {
          def deep( prefix: Digit[ V, A ], tree: FingerTree[ V, Digit[ V, A ]], suffix: Digit[ V, A ]) = suffix match {
             case One( _, _ ) => tree.viewRight match {
                case ViewConsRight( newTree, a ) =>
-//                  val suffixNew = a.toDigit[ V ]
-                  val vNew = m.|+|( m.|+|( prefix.measure, newTree.measure ), a.measure /* suffixNew.measure */)
-                  Deep( vNew, prefix, newTree, a /* suffixNew */)
+                  val vNew = m.|+|( m.|+|( prefix.measure, newTree.measure ), a.measure )
+                  Deep( vNew, prefix, newTree, a )
                case _ =>
                   prefix.toTree
             }
 
             case _suffix =>
-               val suffixNew = _suffix.tailRight
+               val suffixNew = _suffix.init
                val vNew = m.|+|( m.|+|( prefix.measure, tree.measure ), suffixNew.measure )
                Deep( vNew, prefix, tree, suffixNew )
          }
 
-         ViewConsRight( deep( prefix, tree, suffix.tailRight ), suffix.headRight )
+         ViewConsRight( deep( prefix, tree, suffix.init ), suffix.last )
       }
 
       def iterator : Iterator[ A ] = prefix.iterator ++ (tree.iterator flatMap { _.toList.iterator }) ++ suffix.iterator
 
       def toList : List[ A ] = iterator.toList
 
-      override def toString = "FingerTree(%s, %s, %s)".format(prefix, tree, suffix)
+      override def toString = "(" + prefix + ", " + tree + ", " + suffix + ")"
    }
 
-   final case class Empty[ V ]( measure: V ) extends FingerTree[ V, Nothing ] {
-      val isEmpty = true
+   final private case class Empty[ V ]( measure: V ) extends FingerTree[ V, Nothing ] {
+      def isEmpty = true
 
-      def headLeft = throw new NoSuchElementException("headLeft on empty finger tree")
-      def tailLeft( implicit m: Measure[ Nothing, V ]) : FingerTree[ V, Nothing ] = throw new NoSuchElementException("tailLeft on empty finger tree")
+      def head = throw new NoSuchElementException( "head on empty finger tree" )
+      def headOption : Option[ Nothing ] = None
+      def tail( implicit m: Measure[ Nothing, V ]) : FingerTree[ V, Nothing ] =
+         throw new NoSuchElementException( "tailLeft on empty finger tree" )
 
-      def headRight = throw new NoSuchElementException("headRight on empty finger tree")
-      def tailRight( implicit m: Measure[ Nothing, V ]) : FingerTree[ V, Nothing ] = throw new NoSuchElementException("tailRight on empty finger tree")
+      def last = throw new NoSuchElementException( "last on empty finger tree" )
+      def lastOption : Option[ Nothing ] = None
+      def init( implicit m: Measure[ Nothing, V ]) : FingerTree[ V, Nothing ] =
+         throw new NoSuchElementException( "tailRight on empty finger tree" )
 
       def +:[ A1 ]( a1: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ] = Single( m.unit( a1 ), a1 )
       def :+[ A1 ]( a1: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ] = Single( m.unit( a1 ), a1 )
@@ -213,33 +199,8 @@ object FingerTree {
 
       def toList : List[ Nothing ] = Nil
 
-      override def toString = "FingerTree(Empty)"
+      override def toString = "()"
    }
-
-   // ---- Nodes ----
-
-//   private sealed trait Node[ +A ] {
-//      def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ]
-//      def toList  : List[ A ]
-//   }
-//
-//   final private case class Node2[ A ]( a1: A, a2: A ) extends Node[ A ] {
-//      def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
-//         Two( m.|+|( m.unit( a1 ), m.unit( a2 )), a1, a2 )
-//
-//      def toList : List[ A ]  = List( a1, a2 )
-//
-//      override def toString = "Node2(%s, %s)".format(a1, a2)
-//   }
-//
-//   final private case class Node3[ A ]( a1: A, a2: A, a3: A ) extends Node[ A ] {
-//      def toDigit[ V ]( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
-//         Three( m.|+|( m.|+|( m.unit( a1 ), m.unit( a2 )), m.unit( a3 )), a1, a2, a3 )
-//
-//      def toList : List[ A ]  = List(  a1, a2, a3 )
-//
-//      override def toString = "Node3(%s, %s, %s)".format(a1, a2, a3)
-//   }
 
    // ---- Views ----
 
@@ -272,11 +233,11 @@ object FingerTree {
    sealed trait Digit[ V, +A ] {
       def measure: V
 
-      def headLeft  : A
-      def tailLeft( implicit m: Measure[ A, V ]) : Digit[ V, A ]
+      def head : A
+      def tail( implicit m: Measure[ A, V ]) : Digit[ V, A ]
 
-      def headRight : A
-      def tailRight( implicit m: Measure[ A, V ]) : Digit[ V, A ]
+      def last : A
+      def init( implicit m: Measure[ A, V ]) : Digit[ V, A ]
 
       def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : Digit[ V, A1 ]
       def :+[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : Digit[ V, A1 ]
@@ -289,11 +250,11 @@ object FingerTree {
    }
 
    final case class One[ V, A ]( measure: V, a1: A ) extends Digit[ V, A ] {
-      def headLeft  = a1
-      def tailLeft( implicit m: Measure[ A, V ]) : Digit[ V, A ] = throw new NoSuchElementException( "tail on digit: one" )
+      def head  = a1
+      def tail( implicit m: Measure[ A, V ]) : Digit[ V, A ] = throw new NoSuchElementException( "tail on digit: one" )
 
-      def headRight = a1
-      def tailRight( implicit m: Measure[ A, V ]) : Digit[ V, A ] = throw new NoSuchElementException( "tail on digit: one" )
+      def last = a1
+      def init( implicit m: Measure[ A, V ]) : Digit[ V, A ] = throw new NoSuchElementException( "tail on digit: one" )
 
       def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : Digit[ V, A1 ] = Two( m.|+|( m.unit( b ), measure ), b, a1 )
       def :+[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : Digit[ V, A1 ] = Two( m.|+|( measure, m.unit( b )),  a1, b )
@@ -310,14 +271,16 @@ object FingerTree {
             a1
          }
       }
+
+      override def toString = "(" + a1 + ")"
    }
 
    final case class Two[ V, A ]( measure: V, a1: A, a2: A ) extends Digit[ V, A ] {
-      def headLeft  = a1
-      def tailLeft( implicit m: Measure[ A, V ]) : Digit[ V, A ] = One( m.unit( a2 ), a2 )
+      def head  = a1
+      def tail( implicit m: Measure[ A, V ]) : Digit[ V, A ] = One( m.unit( a2 ), a2 )
 
-      def headRight = a2
-      def tailRight( implicit m: Measure[ A, V ]) : Digit[ V, A ] = One( m.unit( a1 ), a1 )
+      def last = a2
+      def init( implicit m: Measure[ A, V ]) : Digit[ V, A ] = One( m.unit( a1 ), a1 )
 
       def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : Digit[ V, A1 ] = Three( m.|+|( m.unit( b ), measure ), b, a1, a2 )
       def :+[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : Digit[ V, A1 ] = Three( m.|+|( measure, m.unit( b )),  a1, a2, b )
@@ -326,15 +289,17 @@ object FingerTree {
 
       def toList : List[ A ] = a1 :: a2 :: Nil
 
-      def iterator : Iterator[ A ] = toList.iterator // (a1 :: a2 :: Nil).iterator
+      def iterator : Iterator[ A ] = toList.iterator
+
+      override def toString = "(" + a1 + ", " + a2 + ")"
    }
 
    final case class Three[ V, A ]( measure: V, a1: A, a2: A, a3: A ) extends Digit[ V, A ] {
-      val headLeft  = a1
-      def tailLeft( implicit m: Measure[ A, V ]) : Digit[ V, A ] = Two( m.|+|( m.unit( a2 ), m.unit( a3 )), a2, a3 )
+      def head  = a1
+      def tail( implicit m: Measure[ A, V ]) : Digit[ V, A ] = Two( m.|+|( m.unit( a2 ), m.unit( a3 )), a2, a3 )
 
-      val headRight = a3
-      def tailRight( implicit m: Measure[ A, V ]) : Digit[ V, A ] = Two( m.|+|( m.unit( a1 ), m.unit( a2 )), a1, a2 )
+      def last = a3
+      def init( implicit m: Measure[ A, V ]) : Digit[ V, A ] = Two( m.|+|( m.unit( a1 ), m.unit( a2 )), a1, a2 )
 
       def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : Digit[ V, A1 ] =
          Four( m.|+|( m.unit( b ), measure ), b, a1, a2, a3 )
@@ -346,25 +311,120 @@ object FingerTree {
 
       def toList : List[ A ] = a1 :: a2 :: a3 :: Nil
 
-      def iterator : Iterator[ A ] = toList.iterator // (a1 :: a2 :: a3 :: Nil).iterator
+      def iterator : Iterator[ A ] = toList.iterator
+
+      override def toString = "(" + a1 + ", " + a2 + ", " + a3 + ")"
    }
 
    final case class Four[ V, A ]( measure: V, a1: A, a2: A, a3: A, a4: A ) extends Digit[ V, A ] {
-      def headLeft  = a1
-      def tailLeft( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
+      def head  = a1
+      def tail( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
          Three( m.|+|( m.|+|( m.unit( a2 ), m.unit( a3 )), m.unit( a4 )), a2, a3, a4 )
 
-      def headRight = a4
-      def tailRight( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
+      def last = a4
+      def init( implicit m: Measure[ A, V ]) : Digit[ V, A ] =
          Three( m.|+|( m.|+|( m.unit( a1 ), m.unit( a2 )), m.unit( a3 )), a1, a2, a3 )
 
-      def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) = throw new UnsupportedOperationException( ":: on Four" )
-      def :+[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) = throw new UnsupportedOperationException( "+ on Four" )
+      def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) = throw new UnsupportedOperationException( "+: on Four" )
+      def :+[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) = throw new UnsupportedOperationException( ":+ on Four" )
 
       def toTree( implicit m: Measure[ A, V ]) : FingerTree[ V, A ] = a1 +: a2 +: a3 +: Single( m.unit( a4 ), a4 )
 
       def toList : List[ A ] = a1 :: a2 :: a3 :: a4 :: Nil
 
-      def iterator : Iterator[ A ] = toList.iterator // (a1 :: a2 :: a3 :: a4 :: Nil).iterator
+      def iterator : Iterator[ A ] = toList.iterator
+
+      override def toString = "(" + a1 + ", " + a2 + ", " + a3 + ", " + a4 + ")"
    }
+}
+
+sealed trait FingerTree[ V, +A ] {
+   import FingerTree._
+
+   /**
+    * Queries whether the tree is empty or not
+    *
+    * @return  `true` if the tree is empty
+    */
+   def isEmpty : Boolean
+
+   /**
+    * Queries the measure of the tree, which might be its size or sum
+    *
+    * @return  the measure of the tree
+    */
+   def measure : V
+
+   /**
+    * Returns the first (left-most) element in the tree. Throws a runtime exception if performed on an empty tree.
+    *
+    * @return  the head element
+    */
+   def head : A
+
+   /**
+    * Returns the first (left-most) element in the tree as an option.
+    *
+    * @return  the head element (`Some`), or `None` if the tree is empty
+    */
+   def headOption : Option[ A ]
+
+   /**
+    * Returns a copy of the tree with the first (head) element removed. Throws a runtime exception if performed
+    * on an empty tree.
+    *
+    * @param m the measure used to update the tree's structure
+    * @return  the new tree with the first element removed
+    */
+   def tail( implicit m: Measure[ A, V ]) : FingerTree[ V, A ]
+
+   /**
+    * Returns the last (right-most) element in the tree. Throws a runtime exception if performed on an empty tree.
+    *
+    * @return  the last element
+    */
+   def last : A
+
+   /**
+    * Returns the last (right-most) element in the tree as an option.
+    *
+    * @return  the last element (`Some`), or `None` if the tree is empty
+    */
+   def lastOption : Option[ A ]
+   def init( implicit m: Measure[ A, V ]) : FingerTree[ V, A ]
+
+   /**
+    * Prepends an element to the tree.
+    *
+    * @param b the element to prepend
+    * @param m the measure used to update the tree's measure
+    * @return  the new tree with the element prepended
+    */
+   def +:[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ]
+
+   /**
+    * Appends an element to the tree.
+    *
+    * @param b the element to append
+    * @param m the measure used to update the tree's structure
+    * @return  the new tree with the element appended
+    */
+   def :+[ A1 >: A ]( b: A1 )( implicit m: Measure[ A1, V ]) : FingerTree[ V, A1 ]
+
+   def viewLeft(  implicit m: Measure[ A, V ]): ViewLeft[  V, A ]
+   def viewRight( implicit m: Measure[ A, V ]): ViewRight[ V, A ]
+
+   /**
+    * Creates an `Iterator` over the elements of the tree
+    *
+    * @return  a fresh `Iterator` for the tree elements
+    */
+   def iterator: Iterator[ A ]
+
+   /**
+    * Converts the tree to a `List` representation.
+    *
+    * @return  a `List` constructed from the elements in the tree
+    */
+   def toList : List[ A ]
 }

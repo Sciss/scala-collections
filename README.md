@@ -2,7 +2,7 @@
 
 The original finger tree class is in package `com.codecommit`. It was written by [Daniel Spiewak](https://github.com/djspiewak/scala-collections). These classes have been updated to build with sbt and against Scala 2.9.1, and continue to be covered by a BSD style license.
 
-The new work, enhanced finger trees providing measurements for indexing, ordering, and summing, are (C)opright 2012 by Hanns Holger Rutz, and licensed under the GNU Lesser General Public License.
+The new work, optimised, corrected and enhanced finger trees providing measurements for indexing, ordering, and summing, are (C)opright 2011&ndash;2012 by Hanns Holger Rutz, and licensed under the GNU General Public License.
 
 ### Building
 

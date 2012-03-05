@@ -1,5 +1,5 @@
 /*
- * Measure.scala
+ * FingerTreeLike.scala
  * (FingerTree)
  *
  * Copyright (c) 2011-2012 Hanns Holger Rutz. All rights reserved.
@@ -25,17 +25,27 @@
 
 package de.sciss.collection.immutable
 
-object Measure {
-   object Indexed extends Measure[ Any, Int ] {
-      val zero = 0
-      def unit( c: Any ) = 1
-      def |+|( a: Int, b: Int ) = a + b
-   }
-}
-trait Measure[ -C, M ] {
-   def zero: M
-   def unit( c: C ) : M
-//   def +:( c: C, m: M ) : M
-//   def :+( m: M, c: C ) : M
-   def |+|( a: M, b: M ) : M
+trait FingerTreeLike[ V, A, Repr <: FingerTreeLike[ V, A, Repr ]] {
+   protected implicit def m: Measure[ A, V ]
+
+   final def iterator: Iterator[ A ] = tree.iterator
+   final def isEmpty: Boolean = tree.isEmpty
+   final def nonEmpty: Boolean = !isEmpty
+
+   final def head: A = tree.head
+   final def headOption: Option[ A ] = tree.headOption
+
+   final def last: A = tree.last
+   final def lastOption: Option[ A ] = tree.lastOption
+
+   final def init: Repr = wrap( tree.init )
+   final def tail: Repr = wrap( tree.tail )
+
+//   final def foreach[ U ]( f: A => U ) { tree.foreach( f )}
+
+   final def toList : List[ A ] = tree.toList
+//   def toStream : Stream[ A ] = tree.toStream
+
+   protected def tree: FingerTree[ V, A ]
+   protected def wrap( tree: FingerTree[ V, A ]) : Repr
 }
